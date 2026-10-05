@@ -61,4 +61,6 @@ Polje `suggestions` je moj dodatak formatu iz zadatka. Za pitanje poput "imate l
 
 ## Što bi se dalo poboljšati i kako provjeriti da sustav radi
 
+Najveći rizik je da model tiho pogriješi a odgovor izgleda ispravno (rečenicu o jelima bez mesa prvotno je proglasio nedostupnom stavkom, uz status 200), pa bih napravio skup stvarnih rečenica s očekivanim rezultatima i pokretao ga protiv pravog modela više puta, jer je model nedeterminističan, te u produkciji pratio udio odgovora s unavailable. Umjesto da JSON samo tražim u promptu, koristio bih Geminijev strukturirani izlaz (response_mime_type i shema odgovora), čime bi se uklonile greške poput JSON-a omotanog u blok koda.
+
 Za stavke u `unavailable` servis sada samo javlja da ih nema, pa gost ostaje bez alternative; poboljšanje je da kod (a ne model, da ne izmišlja) uz svaku takvu stavku vrati popis jela iz iste kategorije koja jesu na jelovniku, bez da ih sam dodaje u narudžbu.
