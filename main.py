@@ -14,7 +14,7 @@ client = genai.Client(http_options=types.HttpOptions(timeout=20000))
 
 app = FastAPI()
 
-with open('jelovnik.json', 'r', encoding='utf-8') as f:
+with open("jelovnik.json", "r", encoding="utf-8") as f:
     menu = json.load(f)
 
 valid_ids = {item["id"] for item in menu}
@@ -43,6 +43,7 @@ Odgovori isključivo JSON-om ovog oblika, bez dodatnog teksta:
 {{"items": [{{"id": "...", "quantity": 1}}], "unavailable": [{{"text": "...", "quantity": 1}}], "wants_meatless_suggestions": false}}
 """
 
+
 class OrderRequest(BaseModel):
     text: str
 
@@ -64,13 +65,16 @@ def is_valid_quantity(qty):
 @app.post("/order")
 def order(req: OrderRequest):
     try:
-      resp = client.models.generate_content(
-        model="gemini-3.5-flash",
-        contents=req.text,
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
-      )
+        resp = client.models.generate_content(
+            model="gemini-3.5-flash",
+            contents=req.text,
+            config=types.GenerateContentConfig(system_instruction=system_prompt),
+        )
     except (errors.APIError, httpx.HTTPError):
-        raise HTTPException(status_code=502, detail="Usluga prepoznavanja narudžbe trenutno nije dostupna.")
+        raise HTTPException(
+            status_code=502,
+            detail="Usluga prepoznavanja narudžbe trenutno nije dostupna.",
+        )
 
     try:
         data = json.loads(resp.text)
@@ -84,18 +88,24 @@ def order(req: OrderRequest):
     unavailable = data.get("unavailable", [])
 
     if not isinstance(items, list) or not isinstance(unavailable, list):
-      raise HTTPException(status_code=502, detail="Model nije vratio valjan odgovor")
+        raise HTTPException(status_code=502, detail="Model nije vratio valjan odgovor")
 
     clean_unavailable = []
     for u in unavailable:
         if not isinstance(u, dict):
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu stavku")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu stavku"
+            )
         text = u.get("text")
         qty = u.get("quantity")
         if not isinstance(text, str) or not text.strip():
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu stavku")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu stavku"
+            )
         if not is_valid_quantity(qty):
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu količinu")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu količinu"
+            )
         clean_unavailable.append({"text": text, "quantity": qty})
     unavailable = clean_unavailable
 
@@ -103,22 +113,36 @@ def order(req: OrderRequest):
 
     suggestions = []
     if wants_meatless:
-        suggestions = [i["id"] for i in menu if i["bez_mesa"] and i["kategorija"] in ("pizza", "salata")]
+        suggestions = [
+            i["id"]
+            for i in menu
+            if i["bez_mesa"] and i["kategorija"] in ("pizza", "salata")
+        ]
 
     valid_items = []
     for x in items:
         if not isinstance(x, dict):
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu stavku")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu stavku"
+            )
         item_id = x.get("id")
         qty = x.get("quantity")
         if not isinstance(item_id, str):
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu stavku")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu stavku"
+            )
         if not is_valid_quantity(qty):
-            raise HTTPException(status_code=502, detail="Model je vratio neispravnu količinu")
+            raise HTTPException(
+                status_code=502, detail="Model je vratio neispravnu količinu"
+            )
 
         if item_id in valid_ids:
             valid_items.append({"id": item_id, "quantity": qty})
         else:
             unavailable.append({"text": item_id, "quantity": qty})
 
-    return {"items": valid_items, "unavailable": unavailable, "suggestions": suggestions}
+    return {
+        "items": valid_items,
+        "unavailable": unavailable,
+        "suggestions": suggestions,
+    }
