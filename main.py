@@ -10,7 +10,7 @@ import json
 
 load_dotenv()
 
-client = genai.Client(http_options=types.HttpOptions(timeout=1))
+client = genai.Client(http_options=types.HttpOptions(timeout=20000))
 
 app = FastAPI()
 
@@ -74,7 +74,7 @@ def order(req: OrderRequest):
 
     try:
         data = json.loads(resp.text)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
         raise HTTPException(status_code=502, detail="Model nije vratio valjan odgovor")
 
     if not isinstance(data, dict):
@@ -85,7 +85,6 @@ def order(req: OrderRequest):
 
     if not isinstance(items, list) or not isinstance(unavailable, list):
       raise HTTPException(status_code=502, detail="Model nije vratio valjan odgovor")
-
 
     clean_unavailable = []
     for u in unavailable:
@@ -114,7 +113,7 @@ def order(req: OrderRequest):
         qty = x.get("quantity")
         if not isinstance(item_id, str):
             raise HTTPException(status_code=502, detail="Model je vratio neispravnu stavku")
-        if isinstance(qty, bool) or not isinstance(qty, int) or qty < 1:
+        if not is_valid_quantity(qty):
             raise HTTPException(status_code=502, detail="Model je vratio neispravnu količinu")
 
         if item_id in valid_ids:
