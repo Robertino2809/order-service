@@ -91,3 +91,8 @@ def test_unavailable_bad_quantity_returns_502():
 def test_too_long_text_returns_422():
     resp = client.post("/order", json={"text": "x" * 501})
     assert resp.status_code == 422
+
+
+def test_empty_model_response_returns_502():
+    resp = post_order(None)
+    assert resp.status_code == 502

@@ -37,7 +37,7 @@ Pravila:
 - Ako količina nije rečena, uzmi da je količina 1.
 - Ako gost samo pita o jelovniku ili traži preporuku, a ništa ne naručuje, ne dodaj ništa u "items" ni u "unavailable". Brojevi koji opisuju goste ("za nas dvoje") nisu količina nijedne stavke.
 - Ako gost pita za jela bez mesa, postavi "wants_meatless_suggestions" na true, inače na false.
-- Ako se gost predomisli usred rečenice, vrijedi zadnja verzija.
+- Ako se gost predomisli usred rečenice, ispravak vrijedi samo za stavku koju gost ispravlja, a sve ostale stavke ostaju u narudžbi. Primjeri: "tri margarite i colu, ma ne, ipak dvije margarite" znači margarita 2 i coca_cola 1; "jednu diavolu, ne, ipak vegetarianu" znači samo vegetariana 1.
 
 Odgovori isključivo JSON-om ovog oblika, bez dodatnog teksta:
 {{"items": [{{"id": "...", "quantity": 1}}], "unavailable": [{{"text": "...", "quantity": 1}}], "wants_meatless_suggestions": false}}
